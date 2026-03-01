@@ -54,6 +54,12 @@ const productReducer = (state, action) => {
         error: action.payload
       };
 
+    case 'SET_CATEGORIES':
+      return {
+        ...state,
+        categories: action.payload
+      };
+
     case 'APPLY_FILTERS': {
       let filtered = [...state.products];
 

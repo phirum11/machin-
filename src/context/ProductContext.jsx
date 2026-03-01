@@ -22,6 +22,12 @@ const initialState = {
 
 const productReducer = (state, action) => {
   switch (action.type) {
+    case 'SET_CATEGORIES':
+      return {
+        ...state,
+        categories: action.payload
+      };
+
     case 'SET_PRODUCTS':
       return {
         ...state,

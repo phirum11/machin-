@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FiHeart, FiShoppingCart, FiEye } from 'react-icons/fi';
 import RatingStars from '../common/RatingStars';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -7,10 +8,9 @@ const ProductCard = ({
   product, 
   onAddToCart, 
   onToggleWishlist,
-  onViewDetails,
   isWishlisted = false 
 }) => {
-  const { id, name, price, originalPrice, image, rating, reviews, discount } = product;
+  const { id, name, price, originalPrice, image, rating, reviews, reviewCount, discount } = product;
 
   return (
     <div className="group bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
@@ -31,15 +31,15 @@ const ProductCard = ({
 
         {/* Quick Actions */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
-          <button
-            onClick={() => onViewDetails?.(id)}
+          <Link
+            to={`/products/${id}`}
             className="w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-blue-600 hover:text-white transition-colors"
             aria-label="Quick view"
           >
             <FiEye className="w-5 h-5" />
-          </button>
+          </Link>
           <button
-            onClick={() => onToggleWishlist(id)}
+            onClick={() => onToggleWishlist?.(id)}
             className={`w-10 h-10 bg-white rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors ${
               isWishlisted ? 'text-red-500' : ''
             }`}
@@ -52,18 +52,18 @@ const ProductCard = ({
 
       {/* Product Info */}
       <div className="p-4">
-        {/* Category/ Brand */}
+        {/* Category */}
         <p className="text-xs text-gray-500 mb-1">{product.category || 'Category'}</p>
         
         {/* Name */}
         <h3 className="font-semibold text-gray-800 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
-          <a href={`/product/${id}`}>{name}</a>
+          <Link to={`/products/${id}`}>{name}</Link>
         </h3>
 
         {/* Rating */}
         <div className="mb-3">
           <RatingStars rating={rating || 4.5} size="sm" />
-          <span className="text-xs text-gray-500 ml-2">({reviews || 0} reviews)</span>
+          <span className="text-xs text-gray-500 ml-2">({reviewCount || reviews || 0})</span>
         </div>
 
         {/* Price */}

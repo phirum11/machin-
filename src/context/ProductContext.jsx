@@ -9,7 +9,7 @@ const initialState = {
   categories: [],
   filters: {
     category: '',
-    priceRange: { min: 0, max: 1000 },
+    priceRange: { min: 0, max: 2000 },
     rating: 0,
     inStock: false,
     search: ''
@@ -52,6 +52,12 @@ const productReducer = (state, action) => {
       return {
         ...state,
         error: action.payload
+      };
+
+    case 'SET_CATEGORIES':
+      return {
+        ...state,
+        categories: action.payload
       };
 
     case 'APPLY_FILTERS': {
@@ -153,7 +159,7 @@ export const ProductProvider = ({ children }) => {
       type: 'SET_FILTER',
       payload: {
         category: '',
-        priceRange: { min: 0, max: 1000 },
+        priceRange: { min: 0, max: 2000 },
         rating: 0,
         inStock: false,
         search: ''

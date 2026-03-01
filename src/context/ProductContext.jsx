@@ -29,6 +29,12 @@ const productReducer = (state, action) => {
         filteredProducts: action.payload
       };
 
+    case 'SET_CATEGORIES':
+      return {
+        ...state,
+        categories: action.payload
+      };
+
     case 'SET_FILTER':
       return {
         ...state,

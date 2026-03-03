@@ -1,68 +1,183 @@
+@import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family:
+    'Roboto',
+    system-ui,
+    -apple-system,
+    sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+/* ── Smooth Scrolling ──────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
 }
-a:hover {
-  color: #535bf2;
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .scroll-reveal,
+  [data-visible] {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
 }
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+/* Animated gradient for hero */
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
   }
-  a:hover {
-    color: #747bff;
+  50% {
+    background-position: 100% 50%;
   }
-  button {
-    background-color: #f9f9f9;
+}
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 6s ease infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
   }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Fade-in up animation */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+/* Stagger children delays */
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+.stagger-2 {
+  animation-delay: 0.2s;
+}
+.stagger-3 {
+  animation-delay: 0.3s;
+}
+.stagger-4 {
+  animation-delay: 0.4s;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* ── Scroll Reveal (IntersectionObserver-driven) ──────────────────── */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* Base: invisible, shifted */
+.scroll-reveal {
+  opacity: 0;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+/* Variants – starting position */
+.scroll-reveal--fade-up {
+  transform: translateY(40px);
+}
+.scroll-reveal--fade-down {
+  transform: translateY(-40px);
+}
+.scroll-reveal--fade-left {
+  transform: translateX(40px);
+}
+.scroll-reveal--fade-right {
+  transform: translateX(-40px);
+}
+.scroll-reveal--zoom-in {
+  transform: scale(0.92);
+}
+.scroll-reveal--fade {
+  transform: none;
+}
+
+/* Revealed state */
+.scroll-reveal--visible,
+.scroll-reveal[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+}
+
+/* ── Generic data-visible pattern (for useScrollRevealMany) ──────── */
+[data-scroll-children] > * {
+  opacity: 0;
+  transform: translateY(30px);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+[data-scroll-children] > [data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
 }

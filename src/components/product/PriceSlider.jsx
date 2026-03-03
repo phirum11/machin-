@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 const PriceSlider = ({ min = 0, max = 1000, value, onChange }) => {
   const [minValue, setMinValue] = useState(value?.min || min);
   const [maxValue, setMaxValue] = useState(value?.max || max);
-  const sliderRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(null); // 'min' | 'max' | null
+  const trackRef = useRef(null);
 
   useEffect(() => {
     if (value) {
@@ -24,94 +25,195 @@ const PriceSlider = ({ min = 0, max = 1000, value, onChange }) => {
     onChange?.({ min: minValue, max: newMax });
   };
 
-  const getPercentage = (value) => ((value - min) / (max - min)) * 100;
+  const pct = (v) => ((v - min) / (max - min)) * 100;
+  const leftPct = pct(minValue);
+  const rightPct = pct(maxValue);
+
+  const formatPrice = (v) =>
+    v >= 1000 ? `$${(v / 1000).toFixed(v % 1000 === 0 ? 0 : 1)}k` : `$${v}`;
 
   return (
-    <div className="w-full space-y-4">
-      {/* Slider Container */}
-      <div className="relative h-2" ref={sliderRef}>
+    <div className="w-full space-y-5">
+      {/* ── Selected range pill ──────────────────────────────────── */}
+      <div className="flex items-center justify-center">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-full">
+          <span className="text-sm font-bold bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent">
+            {formatPrice(minValue)}
+          </span>
+          <span className="w-4 h-px bg-indigo-300" />
+          <span className="text-sm font-bold bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent">
+            {formatPrice(maxValue)}
+          </span>
+        </div>
+      </div>
+
+      {/* ── Slider track ─────────────────────────────────────────── */}
+      <div className="relative h-7 flex items-center" ref={trackRef}>
         {/* Background track */}
-        <div className="absolute w-full h-2 bg-gray-200 rounded-full" />
-        
-        {/* Colored track between handles */}
+        <div className="absolute w-full h-1.5 bg-gray-200 rounded-full" />
+
+        {/* Active range track (gradient) */}
         <div
-          className="absolute h-2 bg-blue-500 rounded-full"
+          className="absolute h-1.5 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] shadow-sm shadow-indigo-500/20 transition-all duration-75"
           style={{
-            left: `${getPercentage(minValue)}%`,
-            width: `${getPercentage(maxValue) - getPercentage(minValue)}%`
+            left: `${leftPct}%`,
+            width: `${rightPct - leftPct}%`
           }}
         />
 
-        {/* Min handle */}
+        {/* Tooltip for min */}
+        {isDragging === 'min' && (
+          <div
+            className="absolute -top-8 -translate-x-1/2 px-2 py-0.5 rounded-md bg-gray-800 text-white text-[11px] font-bold whitespace-nowrap shadow-lg pointer-events-none z-10"
+            style={{ left: `${leftPct}%` }}
+          >
+            ${minValue}
+          </div>
+        )}
+
+        {/* Tooltip for max */}
+        {isDragging === 'max' && (
+          <div
+            className="absolute -top-8 -translate-x-1/2 px-2 py-0.5 rounded-md bg-gray-800 text-white text-[11px] font-bold whitespace-nowrap shadow-lg pointer-events-none z-10"
+            style={{ left: `${rightPct}%` }}
+          >
+            ${maxValue}
+          </div>
+        )}
+
+        {/* Min range input */}
         <input
           type="range"
           min={min}
           max={max}
+          step={5}
           value={minValue}
           onChange={handleMinChange}
-          className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-blue-500 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto"
-          style={{ zIndex: minValue > max - 100 ? 2 : 1 }}
+          onMouseDown={() => setIsDragging('min')}
+          onMouseUp={() => setIsDragging(null)}
+          onTouchStart={() => setIsDragging('min')}
+          onTouchEnd={() => setIsDragging(null)}
+          className="absolute w-full appearance-none bg-transparent pointer-events-none
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5
+            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:bg-white
+            [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-[#4F46E5]
+            [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:shadow-indigo-500/20
+            [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:active:cursor-grabbing
+            [&::-webkit-slider-thumb]:pointer-events-auto
+            [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:active:scale-110
+            [&::-webkit-slider-thumb]:transition-transform
+            [&::-webkit-slider-thumb]:ring-0 [&::-webkit-slider-thumb]:hover:ring-4 [&::-webkit-slider-thumb]:hover:ring-indigo-500/10
+            [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5
+            [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white
+            [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-[#4F46E5]
+            [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-grab
+            [&::-moz-range-thumb]:pointer-events-auto"
+          style={{ zIndex: minValue > max - 100 ? 3 : 2 }}
         />
 
-        {/* Max handle */}
+        {/* Max range input */}
         <input
           type="range"
           min={min}
           max={max}
+          step={5}
           value={maxValue}
           onChange={handleMaxChange}
-          className="absolute w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-500 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:hover:scale-110 [&::-webkit-slider-thumb]:transition-transform [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-blue-500 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:pointer-events-auto"
+          onMouseDown={() => setIsDragging('max')}
+          onMouseUp={() => setIsDragging(null)}
+          onTouchStart={() => setIsDragging('max')}
+          onTouchEnd={() => setIsDragging(null)}
+          className="absolute w-full appearance-none bg-transparent pointer-events-none
+            [&::-webkit-slider-thumb]:appearance-none
+            [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5
+            [&::-webkit-slider-thumb]:rounded-full
+            [&::-webkit-slider-thumb]:bg-white
+            [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-[#7C3AED]
+            [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:shadow-purple-500/20
+            [&::-webkit-slider-thumb]:cursor-grab [&::-webkit-slider-thumb]:active:cursor-grabbing
+            [&::-webkit-slider-thumb]:pointer-events-auto
+            [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:active:scale-110
+            [&::-webkit-slider-thumb]:transition-transform
+            [&::-webkit-slider-thumb]:ring-0 [&::-webkit-slider-thumb]:hover:ring-4 [&::-webkit-slider-thumb]:hover:ring-purple-500/10
+            [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5
+            [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white
+            [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-[#7C3AED]
+            [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-grab
+            [&::-moz-range-thumb]:pointer-events-auto"
+          style={{ zIndex: 2 }}
         />
       </div>
 
-      {/* Price inputs */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <label className="block text-xs text-gray-500 mb-1">Min Price</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-            <input
-              type="number"
-              value={minValue}
-              onChange={(e) => {
-                const val = Number(e.target.value);
-                if (val >= min && val <= maxValue - 10) {
-                  setMinValue(val);
-                  onChange?.({ min: val, max: maxValue });
-                }
-              }}
-              className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            />
-          </div>
+      {/* ── Price inputs ─────────────────────────────────────────── */}
+      <div className="flex items-center gap-2">
+        <div className="flex-1 relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+            $
+          </span>
+          <input
+            type="number"
+            value={minValue}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              if (val >= min && val <= maxValue - 10) {
+                setMinValue(val);
+                onChange?.({ min: val, max: maxValue });
+              }
+            }}
+            className="w-full pl-6 pr-1.5 py-1.5 text-sm font-semibold text-gray-700 border-2 border-gray-100 bg-gray-50 rounded-lg focus:border-[#4F46E5] focus:ring-2 focus:ring-indigo-500/10 focus:bg-white outline-none transition-all"
+          />
         </div>
 
-        <div className="text-gray-400">-</div>
+        <div className="w-4 h-0.5 bg-gray-200 rounded-full flex-shrink-0" />
 
-        <div className="flex-1">
-          <label className="block text-xs text-gray-500 mb-1">Max Price</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-            <input
-              type="number"
-              value={maxValue}
-              onChange={(e) => {
-                const val = Number(e.target.value);
-                if (val <= max && val >= minValue + 10) {
-                  setMaxValue(val);
-                  onChange?.({ min: minValue, max: val });
-                }
-              }}
-              className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-            />
-          </div>
+        <div className="flex-1 relative">
+          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
+            $
+          </span>
+          <input
+            type="number"
+            value={maxValue}
+            onChange={(e) => {
+              const val = Number(e.target.value);
+              if (val <= max && val >= minValue + 10) {
+                setMaxValue(val);
+                onChange?.({ min: minValue, max: val });
+              }
+            }}
+            className="w-full pl-6 pr-1.5 py-1.5 text-sm font-semibold text-gray-700 border-2 border-gray-100 bg-gray-50 rounded-lg focus:border-[#7C3AED] focus:ring-2 focus:ring-purple-500/10 focus:bg-white outline-none transition-all"
+          />
         </div>
       </div>
 
-      {/* Range labels */}
-      <div className="flex justify-between text-xs text-gray-500">
-        <span>${min}</span>
-        <span>Selected: ${minValue} - ${maxValue}</span>
-        <span>${max}</span>
+      {/* ── Quick preset buttons ─────────────────────────────────── */}
+      <div className="flex flex-wrap gap-1.5">
+        {[
+          { label: 'Under $50', min: 0, max: 50 },
+          { label: '$50-$200', min: 50, max: 200 },
+          { label: '$200-$500', min: 200, max: 500 },
+          { label: '$500+', min: 500, max: 1000 }
+        ].map((preset) => {
+          const isActive = minValue === preset.min && maxValue === preset.max;
+          return (
+            <button
+              key={preset.label}
+              onClick={() => {
+                setMinValue(preset.min);
+                setMaxValue(preset.max);
+                onChange?.({ min: preset.min, max: preset.max });
+              }}
+              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
+                isActive
+                  ? 'bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-sm shadow-indigo-500/25'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700'
+              }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

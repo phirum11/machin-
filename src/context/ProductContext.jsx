@@ -9,7 +9,7 @@ const initialState = {
   categories: [],
   filters: {
     category: '',
-    priceRange: { min: 0, max: 1000 },
+    priceRange: { min: 0, max: 2000 },
     rating: 0,
     inStock: false,
     search: ''
@@ -22,6 +22,12 @@ const initialState = {
 
 const productReducer = (state, action) => {
   switch (action.type) {
+    case 'SET_CATEGORIES':
+      return {
+        ...state,
+        categories: action.payload
+      };
+
     case 'SET_PRODUCTS':
       return {
         ...state,
@@ -59,32 +65,38 @@ const productReducer = (state, action) => {
 
       // Apply category filter
       if (state.filters.category) {
-        filtered = filtered.filter(p => p.category === state.filters.category);
+        filtered = filtered.filter(
+          (p) => p.category === state.filters.category
+        );
       }
 
       // Apply price range filter
-      filtered = filtered.filter(p => 
-        p.price >= state.filters.priceRange.min && 
-        p.price <= state.filters.priceRange.max
+      filtered = filtered.filter(
+        (p) =>
+          p.price >= state.filters.priceRange.min &&
+          p.price <= state.filters.priceRange.max
       );
 
       // Apply rating filter
       if (state.filters.rating > 0) {
-        filtered = filtered.filter(p => (p.rating || 0) >= state.filters.rating);
+        filtered = filtered.filter(
+          (p) => (p.rating || 0) >= state.filters.rating
+        );
       }
 
       // Apply stock filter
       if (state.filters.inStock) {
-        filtered = filtered.filter(p => (p.stock || 0) > 0);
+        filtered = filtered.filter((p) => (p.stock || 0) > 0);
       }
 
       // Apply search filter
       if (state.filters.search) {
         const searchLower = state.filters.search.toLowerCase();
-        filtered = filtered.filter(p => 
-          p.name.toLowerCase().includes(searchLower) ||
-          p.description?.toLowerCase().includes(searchLower) ||
-          p.category?.toLowerCase().includes(searchLower)
+        filtered = filtered.filter(
+          (p) =>
+            p.name.toLowerCase().includes(searchLower) ||
+            p.description?.toLowerCase().includes(searchLower) ||
+            p.category?.toLowerCase().includes(searchLower)
         );
       }
 
@@ -102,7 +114,8 @@ const productReducer = (state, action) => {
             comparison = (a.rating || 0) - (b.rating || 0);
             break;
           case 'newest':
-            comparison = new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
+            comparison =
+              new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
             break;
           case 'popularity':
             comparison = (a.soldCount || 0) - (b.soldCount || 0);
@@ -130,9 +143,9 @@ export const ProductProvider = ({ children }) => {
   useEffect(() => {
     // Load products
     dispatch({ type: 'SET_PRODUCTS', payload: initialProducts });
-    
+
     // Extract categories
-    const categories = [...new Set(initialProducts.map(p => p.category))];
+    const categories = [...new Set(initialProducts.map((p) => p.category))];
     dispatch({ type: 'SET_CATEGORIES', payload: categories });
   }, []);
 
@@ -153,7 +166,7 @@ export const ProductProvider = ({ children }) => {
       type: 'SET_FILTER',
       payload: {
         category: '',
-        priceRange: { min: 0, max: 1000 },
+        priceRange: { min: 0, max: 2000 },
         rating: 0,
         inStock: false,
         search: ''
@@ -162,15 +175,15 @@ export const ProductProvider = ({ children }) => {
   };
 
   const getProductById = (id) => {
-    return state.products.find(p => p.id === id);
+    return state.products.find((p) => p.id === id);
   };
 
   const getRelatedProducts = (productId, limit = 4) => {
     const product = getProductById(productId);
     if (!product) return [];
-    
+
     return state.products
-      .filter(p => p.id !== productId && p.category === product.category)
+      .filter((p) => p.id !== productId && p.category === product.category)
       .slice(0, limit);
   };
 
@@ -190,7 +203,9 @@ export const ProductProvider = ({ children }) => {
     getRelatedProducts
   };
 
-  return <ProductContext.Provider value={value}>{children}</ProductContext.Provider>;
+  return (
+    <ProductContext.Provider value={value}>{children}</ProductContext.Provider>
+  );
 };
 
 export const useProducts = () => {
